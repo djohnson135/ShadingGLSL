@@ -38,7 +38,52 @@ struct materialStruct {
 struct lightStruct {
 	glm::vec3 position;
 	glm::vec3 color;
-} lights[NUM_LIGHTS];
+} lights[NUM_LIGHTS];	
+
+materialStruct material1 = {
+	glm::vec3(0.2f, 0.2f, 0.2f), //ka
+	glm::vec3(0.8f, 0.7f, 0.7f), //kd
+	glm::vec3(1.0f, 1.0f, 1.0f), //ks
+	10.0f //s
+};
+
+lightStruct light1 = {
+	glm::vec3(0.0f, 0.0f, 3.0f), //position
+	glm::vec3(0.5f, 0.5f, 0.5f), //color
+};
+
+lightStruct light2 = {
+	glm::vec3(0.0f, 3.0f, 0.0f), //position
+	glm::vec3(0.2f, 0.2f, 0.2f), //color
+};
+
+struct Baycentric {
+	float alpha = -1;
+	float beta = -1;
+	float gamma = -1;
+	Baycentric(float alpha, float beta, float gamma) : alpha(alpha), beta(beta), gamma(gamma) {};
+	bool Inside() {
+		if (this->alpha >= 0 && this->alpha <= 1) {
+			if (this->beta >= 0 && this->beta <= 1) {
+				if (this->gamma >= 0 && this->gamma <= 1) return true;
+			}
+		}
+		return false;
+	}
+};
+
+Baycentric baycentricCoordinate(float xPos, float yPos, glm::vec3 A, glm::vec3 B, glm::vec3 C) {
+
+	float alpha = (-1 * ((xPos - B.x) * (C.y - B.y)) + (yPos - B.y) * (C.x - B.x)) /
+		(-1 * ((A.x - B.x) * (C.y - B.y)) + (A.y - B.y) * (C.x - B.x));
+
+	float beta = (-1 * ((xPos - C.x) * (A.y - C.y)) + (yPos - C.y) * (A.x - C.x)) /
+		(-1 * ((B.x - C.x) * (A.y - C.y)) + (B.y - C.y) * (A.x - C.x));
+
+	float gamma = 1 - alpha - beta;
+
+	return Baycentric(alpha, beta, gamma);
+}		
 
 
 void Display()
@@ -49,6 +94,10 @@ void Display()
 	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), float(width) / float(height), 0.1f, 100.0f);
 	glm::mat4 viewMatrix = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
+	/*glm::mat4 viewModel = inverse(viewMatrix);
+	glm::vec3 cameraPostest = glm::vec3(viewModel[3]);
+	glm::vec3 cameraPos(viewModel[3]);*/
+
 	glm::mat4 modelMatrix(1.0f);
 	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, -1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -56,6 +105,19 @@ void Display()
 	program.SendUniformData(modelMatrix, "model");
 	program.SendUniformData(viewMatrix, "view");
 	program.SendUniformData(projectionMatrix, "projection");
+
+	//for now we will not use a for loop for materials
+	program.SendUniformData(materials[0].ka, "ka");
+	program.SendUniformData(materials[0].kd, "kd");
+	program.SendUniformData(materials[0].ks, "ks");
+	program.SendUniformData(materials[0].s, "s");
+
+
+	for (int i = 0; i < NUM_LIGHTS; i++) {
+		program.SendUniformData(lights[i].color, (const char *)("lights[" + std::to_string(i) + "].color").c_str());
+		program.SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
+	}
+
 	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
 	program.Unbind();
 
@@ -130,8 +192,14 @@ void LoadModel(char* name)
 
 void Init()
 {
+	materials[0] = material1;
+	lights[0] = light1;
+	lights[1] = light2;
+
+
+
 	glfwInit();
-	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Assignment4 - <Your Name>", NULL, NULL);
+	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Assignment4 - Dathan Johnson", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	glewExperimental = GL_TRUE;
 	glewInit();
