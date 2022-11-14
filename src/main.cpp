@@ -47,6 +47,22 @@ materialStruct material1 = {
 	10.0f //s
 };
 
+materialStruct material2 = {
+	glm::vec3(0.0f, 0.2f, 0.2f), //ka
+	glm::vec3(0.5f, 0.7f, 0.2f), //kd
+	glm::vec3(0.1f, 1.0f, 0.1f), //ks
+	100.0f //s
+};
+
+
+materialStruct material3 = {
+	glm::vec3(0.2f, 0.2f, 0.2f), //ka
+	glm::vec3(0.1f, 0.3f, 0.9f), //kd
+	glm::vec3(0.1f, 1.0f, 0.1f), //ks
+	1.0f //s
+};
+
+
 lightStruct light1 = {
 	glm::vec3(0.0f, 0.0f, 3.0f), //position
 	glm::vec3(0.5f, 0.5f, 0.5f), //color
@@ -110,6 +126,7 @@ void Display()
 	program.SendUniformData(materials[0].ka, "ka");
 	program.SendUniformData(materials[0].kd, "kd");
 	program.SendUniformData(materials[0].ks, "ks");
+	program.SendUniformData(eye, "eye");
 	//program.SendUniformData(glm::vec3(1.0f, 0.0f, 0.0f), "ks");
 
 	//program.SendUniformData(1.0f, "s");
@@ -197,6 +214,8 @@ void LoadModel(char* name)
 void Init()
 {
 	materials[0] = material1;
+	materials[1] = material2;
+	materials[2] = material3;
 	lights[0] = light1;
 	lights[1] = light2;
 
