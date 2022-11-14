@@ -62,7 +62,7 @@ materialStruct material2 = {
 materialStruct material3 = {
 	glm::vec3(0.2f, 0.2f, 0.2f), //ka
 	glm::vec3(0.1f, 0.3f, 0.9f), //kd
-	glm::vec3(0.1f, 1.0f, 0.1f), //ks
+	glm::vec3(0.1f, 0.1f, 0.1f), //ks
 	1.0f //s
 };
 
@@ -167,10 +167,21 @@ void CharacterCallback(GLFWwindow* lWindow, unsigned int key)
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 		break;
 	case 'M':
-		material = CLAMP(--material, 0, NUM_MATERIALS-1);
+		material--;
+		material = CLAMP(material, 0, NUM_MATERIALS-1);
 		break;
 	case 'm':
-		material = CLAMP(++material, 0, NUM_MATERIALS - 1);
+		material++;
+		material = CLAMP(material, 0, NUM_MATERIALS - 1);
+		break;
+	case '1':
+		//Gouraud
+		break;
+	case '2':
+		//Phong
+		break;
+	case '3':
+		//Sillhouette
 		break;
 	default:
 		break;
