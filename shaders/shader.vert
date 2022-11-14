@@ -6,7 +6,7 @@ attribute vec3 vNormalModel; // in object space
 uniform mat4 model; //model 
 uniform mat4 view; //camera
 uniform mat4 projection;
-
+//uniform vec3 eye;
 struct lightStruct
 {
 	vec3 position;
@@ -35,12 +35,12 @@ void main()
 
 	//grab the eye position from the view matrix
 	mat4 inverseView = inverse(view);
-	vec3 eye = vec3(inverseView[3]);
-
+	//vec3 eye = vec3(inverseView[3]);
+	vec3 eye = vec3(0.0f, 0.0f, 4.0f);
 
 	vec4 worldCoordvPositionModel = model * vec4(vPositionModel, 1);
 	//vec4 worldCoordinateNormal = normalize(model * (vec4((vPositionModel + vNormalModel), 1)) - worldCoordvPositionModel);
-	vec4 worldCoordinateNormal = normalize( transpose(inverse(model)) *  vec4(vNormalModel,1));
+	vec4 worldCoordinateNormal = normalize( inverse(transpose(model)) *  vec4(vNormalModel,1));
 
 	vec3 normal3d = vec3(worldCoordinateNormal);
 	vec3 pos3d = vec3(worldCoordvPositionModel);
@@ -54,10 +54,11 @@ void main()
 		vec3 L =  normalize(lights[i].position - pos3d);
 		vec3 R = normalize(2*(dot(L, normal3d)) * normal3d - L);
 		I = I + lights[i].color * (kd * max(0, dot(L, normal3d)) + ks* pow(max(0, dot(R, E)), s));
+		//I = I + lights[i].color * (kd * max(0, dot(L, normal3d)));
+
 	}
 	I = ka + I;
 	color = I;
-		
 }
 
 //vposition 

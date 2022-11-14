@@ -110,6 +110,10 @@ void Display()
 	program.SendUniformData(materials[0].ka, "ka");
 	program.SendUniformData(materials[0].kd, "kd");
 	program.SendUniformData(materials[0].ks, "ks");
+	//program.SendUniformData(glm::vec3(1.0f, 0.0f, 0.0f), "ks");
+
+	//program.SendUniformData(1.0f, "s");
+
 	program.SendUniformData(materials[0].s, "s");
 
 
