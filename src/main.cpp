@@ -21,6 +21,8 @@
 #define NUM_LIGHTS 2
 #define NUM_MATERIALS 3
 
+#define CLAMP(in, low, high) ((in) < (low) ? (low) : ((in) > (high) ? (high) : in))
+
 GLFWwindow *window;
 
 Program program;
@@ -29,6 +31,8 @@ std::vector<float> norBuff;
 std::vector<float> texBuff;
 
 glm::vec3 eye(0.0f, 0.0f, 4.0f);
+
+int material = 0;
 
 struct materialStruct {
 	glm::vec3 ka, kd, ks;
@@ -121,17 +125,27 @@ void Display()
 	program.SendUniformData(modelMatrix, "model");
 	program.SendUniformData(viewMatrix, "view");
 	program.SendUniformData(projectionMatrix, "projection");
+	program.SendUniformData(eye, "eye");
+	program.SendUniformData(material, "material");
 
 	//for now we will not use a for loop for materials
-	program.SendUniformData(materials[0].ka, "ka");
-	program.SendUniformData(materials[0].kd, "kd");
-	program.SendUniformData(materials[0].ks, "ks");
-	program.SendUniformData(eye, "eye");
+	/*for (int i = 0; i < NUM_MATERIALS; i++) {
+
+		program.SendUniformData(materials[i].ka, (const char*)("materials[" + std::to_string(i) + "].ka").c_str());
+		program.SendUniformData(materials[i].kd, (const char*)("materials[" + std::to_string(i) + "].kd").c_str());
+		program.SendUniformData(materials[i].ks, (const char*)("materials[" + std::to_string(i) + "].ks").c_str());
+		program.SendUniformData(materials[i].s,  (const char*)("materials[" + std::to_string(i) + "].s").c_str());
+
+	}*/
+
+	program.SendUniformData(materials[material].ka, "ka");
+	program.SendUniformData(materials[material].kd, "kd");
+	program.SendUniformData(materials[material].ks, "ks");
 	//program.SendUniformData(glm::vec3(1.0f, 0.0f, 0.0f), "ks");
 
-	//program.SendUniformData(1.0f, "s");
+	////program.SendUniformData(1.0f, "s");
 
-	program.SendUniformData(materials[0].s, "s");
+	program.SendUniformData(materials[material].s, "s");
 
 
 	for (int i = 0; i < NUM_LIGHTS; i++) {
@@ -151,6 +165,12 @@ void CharacterCallback(GLFWwindow* lWindow, unsigned int key)
 	{
 	case 'q':
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
+		break;
+	case 'M':
+		material = CLAMP(--material, 0, NUM_MATERIALS-1);
+		break;
+	case 'm':
+		material = CLAMP(++material, 0, NUM_MATERIALS - 1);
 		break;
 	default:
 		break;
