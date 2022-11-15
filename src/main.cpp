@@ -20,12 +20,13 @@
 #define WINDOW_HEIGHT 480
 #define NUM_LIGHTS 2
 #define NUM_MATERIALS 3
-
+#define NUM_SHADERS 3
 #define CLAMP(in, low, high) ((in) < (low) ? (low) : ((in) > (high) ? (high) : in))
 
 GLFWwindow *window;
 
-Program program;
+
+Program programs[NUM_SHADERS-1];
 std::vector<float> posBuff;
 std::vector<float> norBuff;
 std::vector<float> texBuff;
@@ -33,6 +34,10 @@ std::vector<float> texBuff;
 glm::vec3 eye(0.0f, 0.0f, 4.0f);
 
 int material = 0;
+//int program = 0;
+int shader = 1;
+
+int light = 0;
 
 struct materialStruct {
 	glm::vec3 ka, kd, ks;
@@ -105,6 +110,98 @@ Baycentric baycentricCoordinate(float xPos, float yPos, glm::vec3 A, glm::vec3 B
 	return Baycentric(alpha, beta, gamma);
 }		
 
+void Gouraud(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
+	
+	int program = shader - 1;
+	programs[program].Bind();
+	programs[program].SendUniformData(modelMatrix, "model");
+	programs[program].SendUniformData(viewMatrix, "view");
+	programs[program].SendUniformData(projectionMatrix, "projection");
+	programs[program].SendUniformData(eye, "eye");
+	programs[program].SendUniformData(material, "material");
+
+
+	programs[program].SendUniformData(materials[material].ka, "ka");
+	programs[program].SendUniformData(materials[material].kd, "kd");
+	programs[program].SendUniformData(materials[material].ks, "ks");
+	programs[program].SendUniformData(materials[material].s, "s");
+
+	for (int i = 0; i < NUM_LIGHTS; i++) {
+		programs[program].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
+		programs[program].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
+	}
+
+	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
+	programs[program].Unbind();
+}
+
+void Phong(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
+	int program = shader - 1;
+	programs[program].Bind();
+	programs[program].SendUniformData(modelMatrix, "model");
+	programs[program].SendUniformData(viewMatrix, "view");
+	programs[program].SendUniformData(projectionMatrix, "projection");
+	programs[program].SendUniformData(eye, "eye");
+	programs[program].SendUniformData(material, "material");
+
+
+	programs[program].SendUniformData(materials[material].ka, "ka");
+	programs[program].SendUniformData(materials[material].kd, "kd");
+	programs[program].SendUniformData(materials[material].ks, "ks");
+	programs[program].SendUniformData(materials[material].s, "s");
+
+	for (int i = 0; i < NUM_LIGHTS; i++) {
+		programs[program].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
+		programs[program].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
+	}
+
+	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
+	programs[program].Unbind();
+}
+
+void Sillhouette(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
+	int program = shader - 1;
+	programs[program].Bind();
+	programs[program].SendUniformData(modelMatrix, "model");
+	programs[program].SendUniformData(viewMatrix, "view");
+	programs[program].SendUniformData(projectionMatrix, "projection");
+	programs[program].SendUniformData(eye, "eye");
+	programs[program].SendUniformData(material, "material");
+
+
+	programs[program].SendUniformData(materials[material].ka, "ka");
+	programs[program].SendUniformData(materials[material].kd, "kd");
+	programs[program].SendUniformData(materials[material].ks, "ks");
+	programs[program].SendUniformData(materials[material].s, "s");
+
+	for (int i = 0; i < NUM_LIGHTS; i++) {
+		programs[program].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
+		programs[program].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
+	}
+
+	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
+	programs[program].Unbind();
+}
+
+void ShaderType(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
+	switch (shader) {
+	case 1:
+		//Phong(projectionMatrix, viewMatrix, modelMatrix);
+
+		Gouraud(projectionMatrix, viewMatrix, modelMatrix);
+		break;
+	case 2:
+		Phong(projectionMatrix, viewMatrix, modelMatrix);
+		break;
+	case 3:
+		Sillhouette(projectionMatrix, viewMatrix, modelMatrix);
+		break;
+	default:
+		Gouraud(projectionMatrix, viewMatrix, modelMatrix);
+		break;
+	}
+}
+
 
 void Display()
 {		
@@ -114,47 +211,10 @@ void Display()
 	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), float(width) / float(height), 0.1f, 100.0f);
 	glm::mat4 viewMatrix = glm::lookAt(eye, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	/*glm::mat4 viewModel = inverse(viewMatrix);
-	glm::vec3 cameraPostest = glm::vec3(viewModel[3]);
-	glm::vec3 cameraPos(viewModel[3]);*/
-
 	glm::mat4 modelMatrix(1.0f);
 	modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, -1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	program.Bind();
-	program.SendUniformData(modelMatrix, "model");
-	program.SendUniformData(viewMatrix, "view");
-	program.SendUniformData(projectionMatrix, "projection");
-	program.SendUniformData(eye, "eye");
-	program.SendUniformData(material, "material");
-
-	//for now we will not use a for loop for materials
-	/*for (int i = 0; i < NUM_MATERIALS; i++) {
-
-		program.SendUniformData(materials[i].ka, (const char*)("materials[" + std::to_string(i) + "].ka").c_str());
-		program.SendUniformData(materials[i].kd, (const char*)("materials[" + std::to_string(i) + "].kd").c_str());
-		program.SendUniformData(materials[i].ks, (const char*)("materials[" + std::to_string(i) + "].ks").c_str());
-		program.SendUniformData(materials[i].s,  (const char*)("materials[" + std::to_string(i) + "].s").c_str());
-
-	}*/
-
-	program.SendUniformData(materials[material].ka, "ka");
-	program.SendUniformData(materials[material].kd, "kd");
-	program.SendUniformData(materials[material].ks, "ks");
-	//program.SendUniformData(glm::vec3(1.0f, 0.0f, 0.0f), "ks");
-
-	////program.SendUniformData(1.0f, "s");
-
-	program.SendUniformData(materials[material].s, "s");
-
-
-	for (int i = 0; i < NUM_LIGHTS; i++) {
-		program.SendUniformData(lights[i].color, (const char *)("lights[" + std::to_string(i) + "].color").c_str());
-		program.SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
-	}
-
-	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
-	program.Unbind();
+	
+	ShaderType(projectionMatrix, viewMatrix, modelMatrix);
 
 }
 
@@ -176,12 +236,43 @@ void CharacterCallback(GLFWwindow* lWindow, unsigned int key)
 		break;
 	case '1':
 		//Gouraud
+		shader = 1;
 		break;
 	case '2':
 		//Phong
+		shader = 2;
 		break;
 	case '3':
 		//Sillhouette
+		shader = 3;
+		break;
+	case 'l':
+		//cycle light forward
+		light++;
+		light = CLAMP(light, 0, NUM_LIGHTS - 1);
+		break;
+	case 'L':
+		light--;
+		light = CLAMP(light, 0, NUM_LIGHTS - 1);
+		//cycle light backwards
+		break;
+	case 'x':
+		// move light in +x dir
+		break;
+	case 'X':
+		//move light in -x dir
+		break;
+	case 'y':
+		//move light in +y dir
+		break;
+	case 'Y':
+		//move light in -y dir
+		break;
+	case 'z':
+		//move light in +z dir
+		break;
+	case 'Z':
+		//move light in -Z dir
 		break;
 	default:
 		break;
@@ -265,10 +356,40 @@ void Init()
 
 	LoadModel("../obj/bunny.obj");
 	
-	program.SetShadersFileName("../shaders/shader.vert", "../shaders/shader.frag");
-	program.Init();
-	program.SendAttributeData(posBuff, "vPositionModel");
-	program.SendAttributeData(norBuff, "vNormalModel");
+	std::string vertFilePath;
+	std::string fragFilePath;
+	for (int i = 0; i < NUM_SHADERS; i++) {
+		switch (i) {
+		case 0:
+			vertFilePath = "../shaders/shaderGouraud.vert";
+			fragFilePath = "../shaders/shaderGouraud.frag";
+			break;
+		case 1:
+			vertFilePath = "../shaders/shaderPhong.vert";
+			fragFilePath = "../shaders/shaderPhong.frag";
+			break;
+		case 2:
+			vertFilePath = "../shaders/shaderSillhouette.vert";
+			fragFilePath = "../shaders/shaderSillhouette.frag";
+			break;
+		default:
+			vertFilePath = "../shaders/shaderGouraud.vert";
+			fragFilePath = "../shaders/shaderGouraud.frag";
+			break;
+		}
+		programs[i].SetShadersFileName((char*)vertFilePath.c_str(), (char*)fragFilePath.c_str());
+		programs[i].Init();
+		programs[i].SendAttributeData(posBuff, "vPositionModel");
+		programs[i].SendAttributeData(norBuff, "vNormalModel");
+		
+	}
+	/*vertFilePath = "../shaders/shaderPhong.vert";
+	fragFilePath = "../shaders/shaderPhong.frag";
+	programs[0].SetShadersFileName((char*)vertFilePath.c_str(), (char*)fragFilePath.c_str());
+	programs[0].Init();
+	programs[0].SendAttributeData(posBuff, "vPositionModel");
+	programs[0].SendAttributeData(norBuff, "vNormalModel");*/
+		
 }
 
 

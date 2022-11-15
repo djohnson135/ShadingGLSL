@@ -8,14 +8,6 @@ uniform mat4 view; //camera
 uniform mat4 projection;
 uniform vec3 eye;
 
-uniform int material;
-
-struct materialStruct {
-	vec3 ka; 
-	vec3 kd; 
-	vec3 ks;
-	float s;
-};
 
 struct lightStruct
 {
@@ -24,10 +16,8 @@ struct lightStruct
 };
 
 #define NUM_LIGHTS 2
-#define NUM_MATERIALS 3
 
 uniform lightStruct lights[NUM_LIGHTS];
-uniform materialStruct materials[NUM_MATERIALS];
 
 uniform vec3 ka;
 uniform vec3 kd;
