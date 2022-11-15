@@ -38,7 +38,7 @@ int material = 0;
 int shader = 0;
 
 int light = 0;
-
+bool spotlight = false;
 struct materialStruct {
 	glm::vec3 ka, kd, ks;
 	float s;
@@ -93,6 +93,7 @@ void Gouraud(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMa
 	programs[shader].SendUniformData(eye, "eye");
 	programs[shader].SendUniformData(material, "material");
 
+	programs[shader].SendUniformData(spotlight, "spotlight");
 
 	programs[shader].SendUniformData(materials[material].ka, "ka");
 	programs[shader].SendUniformData(materials[material].kd, "kd");
@@ -240,6 +241,9 @@ void CharacterCallback(GLFWwindow* lWindow, unsigned int key)
 	case 'Z':
 		lights[light].position.z--;
 		//move light in -Z dir
+		break;
+	case 's':
+		spotlight = !spotlight;
 		break;
 	default:
 		break;

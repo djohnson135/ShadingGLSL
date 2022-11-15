@@ -8,6 +8,7 @@ uniform mat4 view; //camera
 uniform mat4 projection;
 uniform vec3 eye;
 
+uniform bool spotlight;
 
 struct lightStruct
 {
@@ -37,20 +38,48 @@ void main()
 	vec4 nn = inverse(transpose(model)) * vec4(vNormalModel, 1.0);
 	vec3 N = normalize(nn.xyz/nn.w);
 
-	// vec3 N = vec3(worldCoordinateNormal);
 	vec3 pos3d = vec3(worldCoordvPositionModel);
 
 	//inverse transpose of model * normal to get the normal from world space  (transpose and inverse model)
 
 	vec3 E = normalize(eye - pos3d);
 	vec3 I = vec3(0.0f, 0.0f, 0.0f);
+	if (!spotlight){
+		for (int i=0; i < NUM_LIGHTS; i++){
+			vec3 L =  normalize(lights[i].position - pos3d);
+			vec3 R = normalize(2 * (dot(L, N)) * N - L);
+			I += lights[i].color * ((kd * max(0, dot(L, N))) + (ks * pow(max(0, dot(R, E)), s)));
+		}
+		I = ka + I;
+	}else{
+	
 
-	for (int i=0; i < NUM_LIGHTS; i++){
-		vec3 L =  normalize(lights[i].position - pos3d);
-		vec3 R = normalize(2 * (dot(L, N)) * N - L);
-		I += lights[i].color * ((kd * max(0, dot(L, N))) + (ks * pow(max(0, dot(R, E)), s)));
+
+		float spotCoef;
+		vec3 Anorm = vec3(0.0f, 0.0f, 0.0f);
+		vec3 A = -1* lights[0].position;
+			
+		Anorm = normalize(A);
+
+		
+		
+		
+		for (int i=0; i < NUM_LIGHTS; i++){
+
+			vec3 L =  normalize(lights[i].position - pos3d);
+			vec3 R = normalize(2 * (dot(L, N)) * N - L);
+			vec3 negativeL = normalize(-1*L);
+			if (dot(negativeL, Anorm) < 0.8){
+				spotCoef = 0;
+			}else{
+				spotCoef = pow(dot(negativeL, Anorm), 3);
+			}
+			I = I + lights[i].color * ((kd *  dot(L, N)) + (ks * pow(dot(R, E), 3))) * spotCoef;
+		}
+
+		I = ka*Anorm + I;
 	}
-	I = ka + I;
+
 	color = I;
 		
 }
