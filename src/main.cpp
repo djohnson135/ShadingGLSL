@@ -35,7 +35,7 @@ glm::vec3 eye(0.0f, 0.0f, 4.0f);
 
 int material = 0;
 //int program = 0;
-int shader = 1;
+int shader = 0;
 
 int light = 0;
 
@@ -82,118 +82,79 @@ lightStruct light2 = {
 	glm::vec3(0.2f, 0.2f, 0.2f), //color
 };
 
-struct Baycentric {
-	float alpha = -1;
-	float beta = -1;
-	float gamma = -1;
-	Baycentric(float alpha, float beta, float gamma) : alpha(alpha), beta(beta), gamma(gamma) {};
-	bool Inside() {
-		if (this->alpha >= 0 && this->alpha <= 1) {
-			if (this->beta >= 0 && this->beta <= 1) {
-				if (this->gamma >= 0 && this->gamma <= 1) return true;
-			}
-		}
-		return false;
-	}
-};
-
-Baycentric baycentricCoordinate(float xPos, float yPos, glm::vec3 A, glm::vec3 B, glm::vec3 C) {
-
-	float alpha = (-1 * ((xPos - B.x) * (C.y - B.y)) + (yPos - B.y) * (C.x - B.x)) /
-		(-1 * ((A.x - B.x) * (C.y - B.y)) + (A.y - B.y) * (C.x - B.x));
-
-	float beta = (-1 * ((xPos - C.x) * (A.y - C.y)) + (yPos - C.y) * (A.x - C.x)) /
-		(-1 * ((B.x - C.x) * (A.y - C.y)) + (B.y - C.y) * (A.x - C.x));
-
-	float gamma = 1 - alpha - beta;
-
-	return Baycentric(alpha, beta, gamma);
-}		
 
 void Gouraud(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
 	
-	int program = shader - 1;
-	programs[program].Bind();
-	programs[program].SendUniformData(modelMatrix, "model");
-	programs[program].SendUniformData(viewMatrix, "view");
-	programs[program].SendUniformData(projectionMatrix, "projection");
-	programs[program].SendUniformData(eye, "eye");
-	programs[program].SendUniformData(material, "material");
+
+	programs[shader].Bind();
+	programs[shader].SendUniformData(modelMatrix, "model");
+	programs[shader].SendUniformData(viewMatrix, "view");
+	programs[shader].SendUniformData(projectionMatrix, "projection");
+	programs[shader].SendUniformData(eye, "eye");
+	programs[shader].SendUniformData(material, "material");
 
 
-	programs[program].SendUniformData(materials[material].ka, "ka");
-	programs[program].SendUniformData(materials[material].kd, "kd");
-	programs[program].SendUniformData(materials[material].ks, "ks");
-	programs[program].SendUniformData(materials[material].s, "s");
+	programs[shader].SendUniformData(materials[material].ka, "ka");
+	programs[shader].SendUniformData(materials[material].kd, "kd");
+	programs[shader].SendUniformData(materials[material].ks, "ks");
+	programs[shader].SendUniformData(materials[material].s, "s");
 
 	for (int i = 0; i < NUM_LIGHTS; i++) {
-		programs[program].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
-		programs[program].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
+		programs[shader].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
+		programs[shader].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
-	programs[program].Unbind();
+	programs[shader].Unbind();
 }
 
 void Phong(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
-	int program = shader - 1;
-	programs[program].Bind();
-	programs[program].SendUniformData(modelMatrix, "model");
-	programs[program].SendUniformData(viewMatrix, "view");
-	programs[program].SendUniformData(projectionMatrix, "projection");
-	programs[program].SendUniformData(eye, "eye");
-	programs[program].SendUniformData(material, "material");
+
+	programs[shader].Bind();
+	programs[shader].SendUniformData(modelMatrix, "model");
+	programs[shader].SendUniformData(viewMatrix, "view");
+	programs[shader].SendUniformData(projectionMatrix, "projection");
+	programs[shader].SendUniformData(eye, "eye");
+	programs[shader].SendUniformData(material, "material");
 
 
-	programs[program].SendUniformData(materials[material].ka, "ka");
-	programs[program].SendUniformData(materials[material].kd, "kd");
-	programs[program].SendUniformData(materials[material].ks, "ks");
-	programs[program].SendUniformData(materials[material].s, "s");
+	programs[shader].SendUniformData(materials[material].ka, "ka");
+	programs[shader].SendUniformData(materials[material].kd, "kd");
+	programs[shader].SendUniformData(materials[material].ks, "ks");
+	programs[shader].SendUniformData(materials[material].s, "s");
 
 	for (int i = 0; i < NUM_LIGHTS; i++) {
-		programs[program].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
-		programs[program].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
+		programs[shader].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
+		programs[shader].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
-	programs[program].Unbind();
+	programs[shader].Unbind();
 }
 
 void Sillhouette(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
-	int program = shader - 1;
-	programs[program].Bind();
-	programs[program].SendUniformData(modelMatrix, "model");
-	programs[program].SendUniformData(viewMatrix, "view");
-	programs[program].SendUniformData(projectionMatrix, "projection");
-	programs[program].SendUniformData(eye, "eye");
-	programs[program].SendUniformData(material, "material");
-
-
-	programs[program].SendUniformData(materials[material].ka, "ka");
-	programs[program].SendUniformData(materials[material].kd, "kd");
-	programs[program].SendUniformData(materials[material].ks, "ks");
-	programs[program].SendUniformData(materials[material].s, "s");
-
-	for (int i = 0; i < NUM_LIGHTS; i++) {
-		programs[program].SendUniformData(lights[i].color, (const char*)("lights[" + std::to_string(i) + "].color").c_str());
-		programs[program].SendUniformData(lights[i].position, (const char*)("lights[" + std::to_string(i) + "].position").c_str());
-	}
+	programs[shader].Bind();
+	programs[shader].SendUniformData(modelMatrix, "model");
+	programs[shader].SendUniformData(viewMatrix, "view");
+	programs[shader].SendUniformData(projectionMatrix, "projection");
+	programs[shader].SendUniformData(eye, "eye");
 
 	glDrawArrays(GL_TRIANGLES, 0, posBuff.size() / 3);
-	programs[program].Unbind();
+	programs[shader].Unbind();
 }
 
 void ShaderType(glm::mat4 projectionMatrix, glm::mat4 viewMatrix, glm::mat4 modelMatrix) {
 	switch (shader) {
-	case 1:
+	case 0:
 		//Phong(projectionMatrix, viewMatrix, modelMatrix);
 
 		Gouraud(projectionMatrix, viewMatrix, modelMatrix);
+
 		break;
-	case 2:
+	case 1:
 		Phong(projectionMatrix, viewMatrix, modelMatrix);
 		break;
-	case 3:
+	case 2:
 		Sillhouette(projectionMatrix, viewMatrix, modelMatrix);
 		break;
 	default:
@@ -236,15 +197,15 @@ void CharacterCallback(GLFWwindow* lWindow, unsigned int key)
 		break;
 	case '1':
 		//Gouraud
-		shader = 1;
+		shader = 0;
 		break;
 	case '2':
 		//Phong
-		shader = 2;
+		shader = 1;
 		break;
 	case '3':
 		//Sillhouette
-		shader = 3;
+		shader = 2;
 		break;
 	case 'l':
 		//cycle light forward

@@ -28,16 +28,19 @@ varying vec3 N;
 
 void main()
 {
-	vec3 newPos = normalize(pos3d);
-	vec3 Norm = normalize(N);
+	//vec3 pos3d = normalize(pos3d);
+	//vec3 N = normalize(N);
 
-	vec3 E = normalize(eye - newPos);
+	vec3 normalizedPos3d = normalize(pos3d);
+	vec3 normal = normalize(N);
+
+	vec3 E = normalize(eye - normalizedPos3d);
 	vec3 I = vec3(0.0f, 0.0f, 0.0f);
 
 	for (int i=0; i < NUM_LIGHTS; i++){
-		vec3 L =  normalize(lights[i].position - newPos);
-		vec3 R = normalize(2 * (dot(L, Norm)) * Norm - L);
-		I += lights[i].color * ((kd * max(0, dot(L, Norm))) + (ks * pow(max(0, dot(R, E)), s)));
+		vec3 L =  normalize(lights[i].position - normalizedPos3d);
+		vec3 R = normalize(2 * (dot(L, normal)) * normal - L);
+		I += lights[i].color * ((kd * max(0, dot(L, normal))) + (ks * pow(max(0, dot(R, E)), s)));
 	}
 	I = ka + I;
 	gl_FragColor = vec4(I, 1.0f);
