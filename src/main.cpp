@@ -257,21 +257,27 @@ void CharacterCallback(GLFWwindow* lWindow, unsigned int key)
 		//cycle light backwards
 		break;
 	case 'x':
+		lights[light].position.x++;
 		// move light in +x dir
 		break;
 	case 'X':
+		lights[light].position.x--;
 		//move light in -x dir
 		break;
 	case 'y':
+		lights[light].position.y++;
 		//move light in +y dir
 		break;
 	case 'Y':
+		lights[light].position.y--;
 		//move light in -y dir
 		break;
 	case 'z':
+		lights[light].position.z++;
 		//move light in +z dir
 		break;
 	case 'Z':
+		lights[light].position.z--;
 		//move light in -Z dir
 		break;
 	default:
